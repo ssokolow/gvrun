@@ -115,8 +115,14 @@ public class RunDialog : Dialog {
         this.title = "Run:";
         this.decorated = false;
         this.border_width = 2;
+        this.set_default_size(350,50);
 
+        // Must realize() before doing either of these.
+        // http://stackoverflow.com/a/8378059/435253
+        this.realize();
         this.set_keep_above(true);
+        this.get_window().set_decorations(Gdk.WMDecoration.BORDER);
+
 
         create_widgets();
         connect_signals();
@@ -125,10 +131,11 @@ public class RunDialog : Dialog {
     private void create_widgets() {
         // Create and setup widgets
         this.command_entry = new Entry();
-        var command_label = new Label.with_mnemonic("_Run program:");
+        var command_label = new Label.with_mnemonic("  _Run program:");
+        //TODO: Think of a label that reflects that xdg-open is used too.
 
         command_label.mnemonic_widget = this.command_entry;
-        command_label.xalign = 0.11f;
+        command_label.xalign = 0.0f;
 
         // Layout widgets
         var content = get_content_area() as Box;
@@ -154,6 +161,7 @@ public class RunDialog : Dialog {
 
     public static int main (string[] args) {
         Gtk.init(ref args);
+        // TODO: Use Log.set_handler to omit DEBUG and INFO by default.
 
         var dialog = new RunDialog();
         dialog.destroy.connect(Gtk.main_quit);
