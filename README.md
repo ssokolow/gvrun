@@ -13,7 +13,7 @@ At present, it's in an early stage of development, so the following caveats appl
 
  * Auto-completion and command history haven't been implemented yet.
  * Resolution of `~` has barely begun being implemented and currently segfaults.
- * "Run in Terminal" is still in the planning phase.
+ * "Run in Terminal" is incomplete.
  * I haven't set up any kind of config parsing yet, so all configuration values
    are currently hard-coded.
  * Logging still has to be set to not show `INFO` and `DEBUG` messages by default.

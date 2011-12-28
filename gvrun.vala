@@ -27,7 +27,7 @@ public class ProcessRunner : Object {
     private string[] shell_cmd;
     private string[] term_cmd;
 
-    private bool _useterm = false; // FIXME: Re-implement this.
+    private bool use_term = false;
     private Regex uri_re;
 
     public const string[] OPENERS = {"xdg-open", "mimeopen", "start", "open"};
@@ -44,6 +44,7 @@ public class ProcessRunner : Object {
         this.home_path   = Environment.get_variable("HOME") ?? Environment.get_home_dir();
         this.shell_cmd   = {Environment.get_variable("SHELL"), "-c"};
         this.term_cmd    = {"urxvt", "-e"};
+        this.use_term    = use_term && !Posix.isatty(Posix.stdout.fileno());
 
         try {
             uri_re =  new Regex("^[a-zA-Z0-9+.\\-]+:.+$", RegexCompileFlags.CASELESS);
@@ -131,14 +132,17 @@ public class ProcessRunner : Object {
         log(null, LogLevelFlags.LEVEL_DEBUG, "Attempting shell fallback for %s", _args);
 
         var spawn_cmd = new ArrayList<string>();
-        if (_useterm)
-            log(null, LogLevelFlags.LEVEL_DEBUG, "Using terminal for %s", args);
+        if (this.use_term) {
+            // XXX: Decide how to add this functionality to the
+            // find_program_in_path branch without it being annoying.
+            log(null, LogLevelFlags.LEVEL_DEBUG, "Using terminal for %s", _args);
             add_from_strlist(spawn_cmd, this.term_cmd);
+        }
 
         add_from_strlist(spawn_cmd, shell_cmd);
-        spawn_cmd.add(Shell.quote(args));
+        spawn_cmd.add(args);
 
-        return spawn_or_log((string[]) spawn_cmd.to_array());
+        return spawn_or_log((string []) spawn_cmd.to_array());
     }
 }
 
