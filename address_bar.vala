@@ -153,7 +153,7 @@ public class RunDialog : Dialog {
 
     private void connect_signals() {
         this.command_entry.activate.connect (() => {
-            log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s\n", this.command_entry.text);
+            log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s", this.command_entry.text);
             if (runner.run(this.command_entry.text))
                 this.command_entry.text = "";
         });
