@@ -112,7 +112,7 @@ public class ProcessRunner : Object {
             string _cmd; // Resolved command
             if ((_cmd = Environment.find_program_in_path(cmd)) != null) {
                 // Valid command (shell execute for versatility)
-                log(null, LogLevelFlags.LEVEL_DEBUG, "Found in path: %s (%s)", _cmd, _args);
+                log(null, LogLevelFlags.LEVEL_INFO, "Executing with shell: %s (%s)", _cmd, _args);
 
                 var spawn_cmd = new ArrayList<string>();
                 add_from_strlist(spawn_cmd, this.shell_cmd);
@@ -121,7 +121,7 @@ public class ProcessRunner : Object {
                 return spawn_or_log((string[]) spawn_cmd.to_array());
             } else if (FileUtils.test(cmd, FileTest.EXISTS) || uri_re.match(cmd)) {
                 // URL or local path (Use desktop associations system)
-                log(null, LogLevelFlags.LEVEL_DEBUG, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
+                log(null, LogLevelFlags.LEVEL_INFO, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
                 return spawn_or_log({this.open_cmd, cmd});
             } else {
                 log(null, LogLevelFlags.LEVEL_DEBUG, "No match: %s", cmd);
@@ -130,7 +130,7 @@ public class ProcessRunner : Object {
         }
 
         // Fall back to letting the shell try to make sense of it.
-        log(null, LogLevelFlags.LEVEL_DEBUG, "Attempting shell fallback for %s", _args);
+        log(null, LogLevelFlags.LEVEL_INFO, "Attempting shell fallback for %s", _args);
 
         var spawn_cmd = new ArrayList<string>();
         if (this.use_term) {
@@ -218,8 +218,12 @@ public class RunDialog : Dialog {
 public class App : Object {
     static bool use_terminal;
     static bool use_gui = true;
+    static bool verbose = false;
+    static bool debug = false;
 
     const OptionEntry[] valid_opts = {
+        { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "Make the logging output more verbose", null},
+        { "debug", 0, 0, OptionArg.NONE, ref debug, "Turn on debugging messages (make things very verbose)", null},
         { "terminal", 't', 0, OptionArg.NONE, ref use_terminal, "Run commands in a terminal if stdout isn't a TTY", null},
         { "no-terminal", 'T', OptionFlags.REVERSE, OptionArg.NONE, ref use_terminal, "Never run commands in a terminal", null },
         { null }
@@ -243,7 +247,15 @@ public class App : Object {
         // Hide DEBUG and INFO messages
         // http://stackoverflow.com/a/7519108
         Log.set_handler(null, LogLevelFlags.LEVEL_MASK, () => {});
-        Log.set_handler(null, LogLevelFlags.LEVEL_INFO | LogLevelFlags.LEVEL_ERROR, Log.default_handler);
+        Log.set_handler(null,
+           LogLevelFlags.LEVEL_WARNING |
+           LogLevelFlags.LEVEL_ERROR |
+           LogLevelFlags.LEVEL_CRITICAL, Log.default_handler);
+
+        if (debug)
+             Log.set_handler(null, LogLevelFlags.LEVEL_INFO | LogLevelFlags.LEVEL_DEBUG, Log.default_handler);
+        else if (verbose)
+             Log.set_handler(null, LogLevelFlags.LEVEL_INFO, Log.default_handler);
 
         var runner = new ProcessRunner(use_terminal);
 
