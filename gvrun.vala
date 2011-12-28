@@ -11,6 +11,16 @@ public void add_from_strlist(Collection<string> collection, string[] string_arra
     foreach (var str in string_array) { collection.add(str); }
 }
 
+/** Simple API for taking a command and heuristically guessing how to open it.
+ *
+ * Basically a superset of what the tools it uses (xdg-open, start.exe, etc.)
+ * do with what you give them.
+ *
+ * Resolves:
+ *  - Executable names and paths (arguments processed by $SHELL)
+ *  - Non-executable paths and URLs (handled by xdg-open and friends)
+ *  - Shell script snippets (resorts to `$SHELL -c` as a fallback)
+ */
 public class ProcessRunner : Object {
     private string home_path;
     private string open_cmd;
@@ -22,7 +32,7 @@ public class ProcessRunner : Object {
 
     public const string[] OPENERS = {"xdg-open", "mimeopen", "start", "open"};
 
-    public ProcessRunner() {
+    public ProcessRunner(bool? use_term) {
         // TODO: Figure out how to detect when we're on Windows.
         foreach (var cmd in OPENERS) {
             if (Environment.find_program_in_path(cmd) != null) {
@@ -59,12 +69,8 @@ public class ProcessRunner : Object {
         }
     }
 
-    /** Heuristically guess how to handle the given commandline.
-     *
-     *  TODO: Decide how best to accept (string || string[]) in Vala.
-     */
-    public bool run (string args) {
-
+    /** Convenience wrapper for run() which parses a single string. */
+    public bool run_string(string args) {
         string[] argv;
         try {
             Shell.parse_argv(args, out argv);
@@ -73,25 +79,47 @@ public class ProcessRunner : Object {
             return false;
         }
 
+        return this.run(argv, args);
+    }
+
+    /** Identify and execute/open a command, file, URL, or shellscript snippet.
+     *
+     *  Implements flexible quoting. If args is not provided, it will be
+     *  generated from argv.
+     */
+    public bool run (string[] argv, string? args=null) {
+        string _args = "";
+
+        if (args == null) {
+            foreach (var piece in argv) {
+               _args += " " + piece;
+               // We don't use Shell.quote() here because it would confuse the
+               // quoting guesser.
+            }
+        } else {
+            _args = args;
+        }
+
         // Flexible quoting for maximum versatility. (Order minimizes mistakes)
-        string[] interpretations = {args, argv[0]};
+        string[] interpretations = {_args, argv[0]};
         foreach (string cmd in interpretations) {
             if (cmd[0] == '~')
                 // FIXME: This segfaults
                 cmd = home_path + (string) Path.DIR_SEPARATOR + cmd.substring(1);
 
-            if (Environment.find_program_in_path(cmd) != null) {
+            string _cmd; // Resolved command
+            if ((_cmd = Environment.find_program_in_path(cmd)) != null) {
                 // Valid command (shell execute for versatility)
-                log(null, LogLevelFlags.LEVEL_DEBUG, "Found in path: %s", cmd);
+                log(null, LogLevelFlags.LEVEL_DEBUG, "Found in path: %s (%s)", _cmd, _args);
 
                 var spawn_cmd = new ArrayList<string>();
                 add_from_strlist(spawn_cmd, this.shell_cmd);
-                spawn_cmd.add(args);
+                spawn_cmd.add(_args);
 
                 return spawn_or_log((string[]) spawn_cmd.to_array());
             } else if (FileUtils.test(cmd, FileTest.EXISTS) || uri_re.match(cmd)) {
                 // URL or local path (Use desktop associations system)
-                log(null, LogLevelFlags.LEVEL_DEBUG, "URL or local path: %s", cmd);
+                log(null, LogLevelFlags.LEVEL_DEBUG, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
                 return spawn_or_log({this.open_cmd, cmd});
             } else {
                 log(null, LogLevelFlags.LEVEL_DEBUG, "No match: %s", cmd);
@@ -100,7 +128,7 @@ public class ProcessRunner : Object {
         }
 
         // Fall back to letting the shell try to make sense of it.
-        log(null, LogLevelFlags.LEVEL_DEBUG, "Attempting shell fallback for %s", args);
+        log(null, LogLevelFlags.LEVEL_DEBUG, "Attempting shell fallback for %s", _args);
 
         var spawn_cmd = new ArrayList<string>();
         if (_useterm)
@@ -121,8 +149,8 @@ public class RunDialog : Dialog {
 
     private const int WIDTH = 350; // TODO: Make this configurable.
 
-    public RunDialog() {
-        runner = new ProcessRunner();
+    public RunDialog(ProcessRunner runner) {
+        this.runner = runner;
 
         this.title = "Run:";
         this.decorated = false;
@@ -174,19 +202,77 @@ public class RunDialog : Dialog {
     private void connect_signals() {
         this.command_entry.activate.connect (() => {
             log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s", this.command_entry.text);
-            if (runner.run(this.command_entry.text))
+            if (runner.run_string(this.command_entry.text))
                 this.command_entry.text = "";
         });
     }
 
-    public static int main (string[] args) {
-        Gtk.init(ref args);
+
+}
+
+public class App : Object {
+    static bool use_terminal;
+    static bool use_gui = true;
+
+    const OptionEntry[] valid_opts = {
+        { "terminal", 't', 0, OptionArg.NONE, ref use_terminal, "Run commands in a terminal if stdout isn't a TTY", null},
+        { "no-terminal", 'T', OptionFlags.REVERSE, OptionArg.NONE, ref use_terminal, "Never run commands in a terminal", null },
+        { null }
+    };
+
+    public static int main(string[] argv) {
+        try {
+            Gtk.init_with_args(ref argv, "[command line]", valid_opts, null);
+        } catch (OptionError e) {
+            if (e is OptionError.FAILED) {
+                // Couldn't open DISPLAY
+                use_gui = false;
+            } else {
+                // Error parsing argv
+                stderr.printf("%s\n", e.message);
+                return 1;
+            }
+        } catch (Error e) {
+            stderr.printf("Unexpected error: %s", e.message);
+            return 255;
+        }
         // TODO: Use Log.set_handler to omit DEBUG and INFO by default.
 
-        var dialog = new RunDialog();
-        dialog.destroy.connect(Gtk.main_quit);
-        dialog.show();
-        Gtk.main();
+        var runner = new ProcessRunner(use_terminal);
+
+        if (argv.length >= 2) {
+            if (argv.length == 2) {
+                log(null, LogLevelFlags.LEVEL_DEBUG, "Parsing and running string: %s", argv[0]);
+                return runner.run_string(argv[1]) ? 0 : 2;
+            } else {
+
+                //XXX: Is there really no equivalent to Python's argv[1:] slice in Vala?
+                bool skipped = false;
+                string[] argv_trimmed = {};
+                foreach (string piece in argv) {
+                    if (!skipped) {
+                        skipped = true;
+                        continue;
+                    }
+                    argv_trimmed += piece;
+                }
+
+                log(null, LogLevelFlags.LEVEL_DEBUG, "Running argv: '%s'", string.joinv("' '", argv_trimmed));
+                return runner.run(argv_trimmed) ? 0 : 2;
+            }
+
+            MainContext.default().iteration(true);
+        } else if (use_gui) {
+            log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
+            var dialog = new RunDialog(runner);
+
+            dialog.destroy.connect(Gtk.main_quit);
+            dialog.show();
+            Gtk.main();
+        } else {
+            stderr.printf("Unable to initialize GTK+ and no arguments given.\n");
+            return 1;
+        }
         return 0;
     }
 }

@@ -4,9 +4,9 @@ When complete, this will look and act much the same as [gmrun](http://sourceforg
  * Supports remaining resident in memory for responsiveness under load.
  * Runs commands in your preferred shell so script snippets just work.
  * Requires no manual file associations. Uses `xdg-open` for non-executables.
+ * Supports taking input on the command line to act as a backend for address bar widgets in IceWM, AwesomeWM, etc.
  * **(Pending)** Resolves `~` in paths.
  * **(Pending)** Auto-completion not confused by hidden files and directories.
- * **(Pending)** Supports taking input on the command line to act as a backend for address bar widgets in IceWM, AwesomeWM, etc.
  * **(Pending)** Notification of non-success exit conditions on via libnotify.
 
 At present, it's in an early stage of development, so the following caveats apply:
