@@ -234,18 +234,16 @@ public class App : Object {
                 use_gui = false;
             } else {
                 // Error parsing argv
-                stderr.printf("%s\n", e.message);
-                return 1;
+                log(null, LogLevelFlags.LEVEL_ERROR, e.message);
             }
         } catch (Error e) {
-            stderr.printf("Unexpected error: %s", e.message);
-            return 255;
+            log(null, LogLevelFlags.LEVEL_ERROR, "Unexpected error: %s", e.message);
         }
 
         // Hide DEBUG and INFO messages
         // http://stackoverflow.com/a/7519108
         Log.set_handler(null, LogLevelFlags.LEVEL_MASK, () => {});
-        Log.set_handler(null, LogLevelFlags.LEVEL_INFO, Log.default_handler);
+        Log.set_handler(null, LogLevelFlags.LEVEL_INFO | LogLevelFlags.LEVEL_ERROR, Log.default_handler);
 
         var runner = new ProcessRunner(use_terminal);
 
@@ -277,8 +275,7 @@ public class App : Object {
             dialog.show();
             Gtk.main();
         } else {
-            stderr.printf("Unable to initialize GTK+ and no arguments given.\n");
-            return 1;
+            log(null, LogLevelFlags.LEVEL_ERROR, "Unable to initialize GTK+ and no arguments given.");
         }
         return 0;
     }
