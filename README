@@ -1,8 +1,0 @@
-
-To install build-time dependencies on Ubuntu (and possibly Debian), install
-libgtk-3-dev and libgee-dev.
-
-For example,
-    sudo apt-get install libgtk-3-dev libgee-dev
-
-With that done, just run "make" and enjoy your "address_bar" binary.
