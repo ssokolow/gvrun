@@ -16,7 +16,6 @@ At present, it's in an early stage of development, so the following caveats appl
  * "Run in Terminal" is incomplete.
  * I haven't set up any kind of config parsing yet, so all configuration values
    are currently hard-coded.
- * Logging still has to be set to not show `INFO` and `DEBUG` messages by default.
  * I haven't figured out how to test for POSIX vs. Win32 from Vala, so `%COMSPEC%` ignored in favor of `%SHELL%` on Windows.
 
 If you still want to try it, it requires GTK+ 3.x (2.x may work but is untested)

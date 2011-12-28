@@ -6,6 +6,7 @@
 using Gtk;
 using Gee;
 
+// TODO: Since string array concatenation seems to be all I do, just use +=
 /** Quick and dirty way to actually get my arrays INTO Gee data types. */
 public void add_from_strlist(Collection<string> collection, string[] string_array) {
     foreach (var str in string_array) { collection.add(str); }
@@ -240,7 +241,11 @@ public class App : Object {
             stderr.printf("Unexpected error: %s", e.message);
             return 255;
         }
-        // TODO: Use Log.set_handler to omit DEBUG and INFO by default.
+
+        // Hide DEBUG and INFO messages
+        // http://stackoverflow.com/a/7519108
+        Log.set_handler(null, LogLevelFlags.LEVEL_MASK, () => {});
+        Log.set_handler(null, LogLevelFlags.LEVEL_INFO, Log.default_handler);
 
         var runner = new ProcessRunner(use_terminal);
 
