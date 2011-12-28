@@ -136,8 +136,8 @@ public class RunDialog : Dialog {
         this.get_window().set_decorations(Gdk.WMDecoration.BORDER);
 
         Gdk.Geometry hints = Gdk.Geometry();
-        hints.min_height = hints.max_height = this.get_window().get_height();
-        hints.min_width  = hints.max_width = WIDTH;
+        hints.min_height = hints.max_height = -1; // Current minimum size
+        hints.min_width  = hints.max_width  = WIDTH;
         set_geometry_hints(this, hints, Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE);
 
         create_widgets();
