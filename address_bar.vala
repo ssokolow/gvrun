@@ -13,15 +13,24 @@ public void add_from_strlist(Collection<string> collection, string[] string_arra
 
 public class ProcessRunner : Object {
     private string home_path;
+    private string open_cmd;
     private string[] shell_cmd;
     private string[] term_cmd;
 
     private bool _useterm = false; // FIXME: Re-implement this.
     private Regex uri_re;
-    private const string OPENER = "xdg-open";
+
+    public const string[] OPENERS = {"xdg-open", "mimeopen", "start", "open"};
 
     public ProcessRunner() {
         // TODO: Figure out how to detect when we're on Windows.
+        foreach (var cmd in OPENERS) {
+            if (Environment.find_program_in_path(cmd) != null) {
+                this.open_cmd = cmd;
+                break;
+            }
+        }
+
         this.home_path   = Environment.get_variable("HOME") ?? Environment.get_home_dir();
         this.shell_cmd   = {Environment.get_variable("SHELL"), "-c"};
         this.term_cmd    = {"urxvt", "-e"};
@@ -31,6 +40,7 @@ public class ProcessRunner : Object {
         } catch (RegexError e) {
             log(null, LogLevelFlags.LEVEL_ERROR, "Bad compile-time constant: ProcessRunner.uri_re");
         }
+
     }
 
     /** All common code for calling commands */
@@ -82,7 +92,7 @@ public class ProcessRunner : Object {
             } else if (FileUtils.test(cmd, FileTest.EXISTS) || uri_re.match(cmd)) {
                 // URL or local path (Use desktop associations system)
                 log(null, LogLevelFlags.LEVEL_DEBUG, "URL or local path: %s", cmd);
-                return spawn_or_log({OPENER, cmd});
+                return spawn_or_log({this.open_cmd, cmd});
             } else {
                 log(null, LogLevelFlags.LEVEL_DEBUG, "No match: %s", cmd);
                 continue; // No match, try the alternate interpretation.
