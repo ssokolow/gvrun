@@ -4,7 +4,8 @@
  * get memleaks.
  */
 using Gtk;
-using Gee;
+
+const string HOTKEY = "<Mod4>space";
 
 // XXX: Is there REALLY no generic way to turn an array into a Gee data type?
 public string[] strlist_concat(string[] strlist, string[] string_array) {
@@ -175,6 +176,7 @@ public class RunDialog : Dialog {
         hints.min_width = 0;
         hints.max_width = this.get_screen().get_width();
 
+        // FIXME: This causes a warning on hide()
         set_geometry_hints(this, hints, Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE);
 
         create_widgets();
@@ -202,13 +204,16 @@ public class RunDialog : Dialog {
         content.remove(actions);
 
         show_all();
+        hide(); // We want to show all child widgets but wait to show the window.
     }
 
     private void connect_signals() {
         this.command_entry.activate.connect (() => {
             log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s", this.command_entry.text);
-            if (runner.run_string(this.command_entry.text))
+            if (runner.run_string(this.command_entry.text)) {
                 this.command_entry.text = "";
+                this.hide();
+            }
         });
     }
 
@@ -216,12 +221,20 @@ public class RunDialog : Dialog {
 }
 
 public class App : Object {
-    static bool use_terminal;
-    static bool use_gui = true;
-    static bool verbose = false;
-    static bool debug = false;
+    // Command-line switches
+    public static bool use_terminal;
+    public static bool use_gui = true;
+    public static bool verbose = false;
+    public static bool debug = false;
 
-    const OptionEntry[] valid_opts = {
+    // Modifiers which will be bound against but which we want to ignore.
+    // Basically, all combinations of CapsLock and NumLock we need to bind to
+    // get the behaviour we intuitively expect.
+    // TODO: This can't be the proper way to do this. What do I have to mask off?
+    const uint[] ignored_mods = {0, X.KeyMask.Mod2Mask, X.KeyMask.LockMask, X.KeyMask.Mod2Mask | X.KeyMask.LockMask};
+
+    // TODO: Support a "service one request, then exit" mode.
+    public const OptionEntry[] valid_opts = {
         { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "Make the logging output more verbose", null},
         { "debug", 0, 0, OptionArg.NONE, ref debug, "Turn on debugging messages (make things very verbose)", null},
         { "terminal", 't', 0, OptionArg.NONE, ref use_terminal, "Run commands in a terminal if stdout isn't a TTY", null},
@@ -229,66 +242,88 @@ public class App : Object {
         { null }
     };
 
-    public static int main(string[] argv) {
-        try {
-            Gtk.init_with_args(ref argv, "[command line]", valid_opts, null);
-        } catch (OptionError e) {
-            if (e is OptionError.FAILED) {
-                // Couldn't open DISPLAY
-                use_gui = false;
-            } else {
-                // Error parsing argv
-                log(null, LogLevelFlags.LEVEL_ERROR, e.message);
-            }
-        } catch (Error e) {
-            log(null, LogLevelFlags.LEVEL_ERROR, "Unexpected error: %s", e.message);
-        }
+    RunDialog dialog;
 
-        // Hide DEBUG and INFO messages
-        // http://stackoverflow.com/a/7519108
-        Log.set_handler(null, LogLevelFlags.LEVEL_MASK, () => {});
-        Log.set_handler(null,
-           LogLevelFlags.LEVEL_WARNING |
-           LogLevelFlags.LEVEL_ERROR |
-           LogLevelFlags.LEVEL_CRITICAL, Log.default_handler);
+    public App(ProcessRunner runner) {
 
-        if (debug)
-             Log.set_handler(null, LogLevelFlags.LEVEL_INFO | LogLevelFlags.LEVEL_DEBUG, Log.default_handler);
-        else if (verbose)
-             Log.set_handler(null, LogLevelFlags.LEVEL_INFO, Log.default_handler);
-
-        var runner = new ProcessRunner(use_terminal);
-
-        if (argv.length >= 2) {
-            if (argv.length == 2) {
-                log(null, LogLevelFlags.LEVEL_DEBUG, "Parsing and running string: %s", argv[0]);
-                return runner.run_string(argv[1]) ? 0 : 2;
-            } else {
-
-                //XXX: Is there really no equivalent to Python's argv[1:] slice in Vala?
-                bool skipped = false;
-                string[] argv_trimmed = {};
-                foreach (string piece in argv) {
-                    if (!skipped) {
-                        skipped = true;
-                        continue;
-                    }
-                    argv_trimmed += piece;
-                }
-
-                log(null, LogLevelFlags.LEVEL_DEBUG, "Running argv: '%s'", string.joinv("' '", argv_trimmed));
-                return runner.run(argv_trimmed) ? 0 : 2;
-            }
-        } else if (use_gui) {
-            log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
-            var dialog = new RunDialog(runner);
-
-            dialog.destroy.connect(Gtk.main_quit);
-            dialog.show();
-            Gtk.main();
-        } else {
-            log(null, LogLevelFlags.LEVEL_ERROR, "Unable to initialize GTK+ and no arguments given.");
-        }
-        return 0;
+        this.dialog = new RunDialog(runner);
+        dialog.delete_event.connect(() => {
+            // Hijack Gtk.Dialog's default ESC behaviour and hide() instead.
+            // Probably not the right way to do this, but it seems to work.
+            this.dialog.hide();
+            return true;
+        });
     }
+
+    public void show() {
+        this.dialog.show();
+    }
+}
+
+public static int main(string[] argv) {
+    try {
+        Gtk.init_with_args(ref argv, "[command line]", App.valid_opts, null);
+    } catch (OptionError e) {
+        if (e is OptionError.FAILED) {
+            // Couldn't open DISPLAY
+            App.use_gui = false;
+        } else {
+            // Error parsing argv
+            log(null, LogLevelFlags.LEVEL_ERROR, e.message);
+        }
+    } catch (Error e) {
+        log(null, LogLevelFlags.LEVEL_ERROR, "Unexpected error: %s", e.message);
+    }
+
+    // Hide DEBUG and INFO messages
+    // http://stackoverflow.com/a/7519108
+    Log.set_handler(null, LogLevelFlags.LEVEL_MASK, () => {});
+    Log.set_handler(null,
+       LogLevelFlags.LEVEL_WARNING |
+       LogLevelFlags.LEVEL_ERROR |
+       LogLevelFlags.LEVEL_CRITICAL, Log.default_handler);
+
+    if (App.debug)
+         Log.set_handler(null, LogLevelFlags.LEVEL_INFO | LogLevelFlags.LEVEL_DEBUG, Log.default_handler);
+    else if (App.verbose)
+         Log.set_handler(null, LogLevelFlags.LEVEL_INFO, Log.default_handler);
+
+    var runner = new ProcessRunner(App.use_terminal);
+
+    if (argv.length >= 2) {
+        if (argv.length == 2) {
+            log(null, LogLevelFlags.LEVEL_DEBUG, "Parsing and running string: %s", argv[0]);
+            return runner.run_string(argv[1]) ? 0 : 2;
+        } else {
+
+            //XXX: Is there really no equivalent to Python's argv[1:] slice in Vala?
+            bool skipped = false;
+            string[] argv_trimmed = {};
+            foreach (string piece in argv) {
+                if (!skipped) {
+                    skipped = true;
+                    continue;
+                }
+                argv_trimmed += piece;
+            }
+
+            log(null, LogLevelFlags.LEVEL_DEBUG, "Running argv: '%s'", string.joinv("' '", argv_trimmed));
+            return runner.run(argv_trimmed) ? 0 : 2;
+        }
+    } else if (App.use_gui) {
+        log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
+        App app = new App(runner);
+
+        // TODO: Load hotkey from a config file
+        // TODO: I'll need an equivalent to this if I want to support Windows.
+        // Have to do this here because inside a class segfaults it.
+        KeybindingManager manager = new KeybindingManager();
+        manager.bind(HOTKEY, app.show);
+        // http://mail.gnome.org/archives/vala-list/2009-December/msg00076.html
+
+        Gtk.main();
+    } else {
+        log(null, LogLevelFlags.LEVEL_ERROR, "Unable to initialize GTK+ and no arguments given.");
+    }
+    return 0;
 }

@@ -18,9 +18,13 @@ At present, it's in an early stage of development, so the following caveats appl
    are currently hard-coded.
  * I haven't figured out how to test for POSIX vs. Win32 from Vala, so `%COMSPEC%` ignored in favor of `%SHELL%` on Windows.
 
-If you still want to try it, it requires GTK+ 3.x (2.x may work but is untested).
+If you still want to try it, it requires GTK+ 3.x (2.x may work if the Makefile is adjusted but is untested) and libgee.
 
 To build on Ubuntu (probably Debian too), it only takes two commands:
 
-    sudo apt-get install libgtk-3-dev valac
+    sudo apt-get install libgtk-3-dev libgee-dev valac
     make
+
+The default hotkey it responds to is WinKey+Space ("<Mod4>space" in GTK+
+accelerator parlance) and is easy to see and edit at the top of `gvrun.vala`
+until I can get around to implementing a config file.
