@@ -109,13 +109,15 @@ public class RunDialog : Dialog {
     private Entry command_entry;
     private ProcessRunner runner;
 
+    private const int WIDTH = 350; // TODO: Make this configurable.
+
     public RunDialog() {
         runner = new ProcessRunner();
 
         this.title = "Run:";
         this.decorated = false;
         this.border_width = 2;
-        this.set_default_size(350,50);
+        this.set_default_size(WIDTH,50);
 
         // Must realize() before doing either of these.
         // http://stackoverflow.com/a/8378059/435253
@@ -123,6 +125,10 @@ public class RunDialog : Dialog {
         this.set_keep_above(true);
         this.get_window().set_decorations(Gdk.WMDecoration.BORDER);
 
+        Gdk.Geometry hints = Gdk.Geometry();
+        hints.min_height = hints.max_height = this.get_window().get_height();
+        hints.min_width  = hints.max_width = WIDTH;
+        set_geometry_hints(this, hints, Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE);
 
         create_widgets();
         connect_signals();
