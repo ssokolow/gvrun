@@ -264,8 +264,6 @@ public class App : Object {
                 log(null, LogLevelFlags.LEVEL_DEBUG, "Running argv: '%s'", string.joinv("' '", argv_trimmed));
                 return runner.run(argv_trimmed) ? 0 : 2;
             }
-
-            MainContext.default().iteration(true);
         } else if (use_gui) {
             log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
             var dialog = new RunDialog(runner);
