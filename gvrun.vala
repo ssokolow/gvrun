@@ -6,10 +6,11 @@
 using Gtk;
 using Gee;
 
-// TODO: Since string array concatenation seems to be all I do, just use +=
-/** Quick and dirty way to actually get my arrays INTO Gee data types. */
-public void add_from_strlist(Collection<string> collection, string[] string_array) {
-    foreach (var str in string_array) { collection.add(str); }
+// XXX: Is there REALLY no generic way to turn an array into a Gee data type?
+public string[] strlist_concat(string[] strlist, string[] string_array) {
+    string[] result = strlist;
+    foreach (var str in string_array) { result += str; }
+    return result;
 }
 
 /** Simple API for taking a command and heuristically guessing how to open it.
@@ -114,11 +115,10 @@ public class ProcessRunner : Object {
                 // Valid command (shell execute for versatility)
                 log(null, LogLevelFlags.LEVEL_INFO, "Executing with shell: %s (%s)", _cmd, _args);
 
-                var spawn_cmd = new ArrayList<string>();
-                add_from_strlist(spawn_cmd, this.shell_cmd);
-                spawn_cmd.add(_args);
+                string[] spawn_cmd = this.shell_cmd;
+                spawn_cmd += _args;
 
-                return spawn_or_log((string[]) spawn_cmd.to_array());
+                return spawn_or_log((string[]) spawn_cmd);
             } else if (FileUtils.test(cmd, FileTest.EXISTS) || uri_re.match(cmd)) {
                 // URL or local path (Use desktop associations system)
                 log(null, LogLevelFlags.LEVEL_INFO, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
@@ -132,18 +132,18 @@ public class ProcessRunner : Object {
         // Fall back to letting the shell try to make sense of it.
         log(null, LogLevelFlags.LEVEL_INFO, "Attempting shell fallback for %s", _args);
 
-        var spawn_cmd = new ArrayList<string>();
+        string[] spawn_cmd = {};
         if (this.use_term) {
             // XXX: Decide how to add this functionality to the
             // find_program_in_path branch without it being annoying.
             log(null, LogLevelFlags.LEVEL_DEBUG, "Using terminal for %s", _args);
-            add_from_strlist(spawn_cmd, this.term_cmd);
+            spawn_cmd = this.term_cmd;
         }
 
-        add_from_strlist(spawn_cmd, shell_cmd);
-        spawn_cmd.add(args);
+        spawn_cmd = strlist_concat(spawn_cmd, shell_cmd);
+        spawn_cmd += args;
 
-        return spawn_or_log((string []) spawn_cmd.to_array());
+        return spawn_or_log((string []) spawn_cmd);
     }
 }
 

@@ -18,10 +18,9 @@ At present, it's in an early stage of development, so the following caveats appl
    are currently hard-coded.
  * I haven't figured out how to test for POSIX vs. Win32 from Vala, so `%COMSPEC%` ignored in favor of `%SHELL%` on Windows.
 
-If you still want to try it, it requires GTK+ 3.x (2.x may work but is untested)
-and [libgee](https://live.gnome.org/Libgee).
+If you still want to try it, it requires GTK+ 3.x (2.x may work but is untested).
 
 To build on Ubuntu (probably Debian too), it only takes two commands:
 
-    sudo apt-get install libgtk-3-dev libgee-dev valac
+    sudo apt-get install libgtk-3-dev valac
     make
