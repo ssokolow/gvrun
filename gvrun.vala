@@ -135,9 +135,13 @@ public class RunDialog : Dialog {
         this.set_keep_above(true);
         this.get_window().set_decorations(Gdk.WMDecoration.BORDER);
 
+        // Only allow horizontal resizing
+        // http://stackoverflow.com/a/4894417/435253
         Gdk.Geometry hints = Gdk.Geometry();
         hints.min_height = hints.max_height = -1; // Current minimum size
-        hints.min_width  = hints.max_width  = WIDTH;
+        hints.min_width = 0;
+        hints.max_width = this.get_screen().get_width();
+
         set_geometry_hints(this, hints, Gdk.WindowHints.MIN_SIZE | Gdk.WindowHints.MAX_SIZE);
 
         create_widgets();
