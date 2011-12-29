@@ -8,6 +8,8 @@
  *  - Non-executable paths and URLs (handled by xdg-open and friends)
  *  - Shell script snippets (resorts to `$SHELL -c` as a fallback)
  *
+ * TODO: Decide how to license this file. (Maybe MIT/BSD)
+ *
  * @author Stephan Sokolow <http://www.ssokolow.com/ContactMe>
  */
 
@@ -33,8 +35,8 @@ public class ProcessRunner : Object {
         }
 
         this.home_path   = Environment.get_variable("HOME") ?? Environment.get_home_dir();
-        this.shell_cmd   = {Environment.get_variable("SHELL"), "-c"};
-        this.term_cmd    = {"urxvt", "-e"};
+        this.shell_cmd   = {Environment.get_variable("SHELL"), "-c"}; // TODO: On Windows, use COMSPEC.
+        this.term_cmd    = {"urxvt", "-e"}; // TODO: On Windows, leave this blank.
         this.use_term    = use_term && !Posix.isatty(Posix.stdout.fileno());
 
         try {

@@ -1,8 +1,11 @@
-/*
-valac --pkg gtk+-3.0 --pkg x11 --pkg gdk-x11-3.0 --pkg gee-1.0 -D DEMO_STUB keybinding-manager.vala
-
+/**
 Source: http://code.valaide.org/content/global-hotkeys
 Modified to work with gdk-x11-3.0 by Stephan Sokolow, 2011-12-28.
+
+Test with:
+
+    valac --pkg gtk+-3.0 --pkg x11 --pkg gdk-x11-3.0 --pkg gee-1.0 -D DEMO_STUB keybinding-manager.vala
+
 */
 
 /**

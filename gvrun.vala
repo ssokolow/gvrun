@@ -1,10 +1,13 @@
 /** Vala-based gmrun-alike.
  *
+ * TODO: Decide how to license this file. (Probably GPL)
+ *
  * TODO: Make sure the variable ownership is all defined properly so I don't
- * get memleaks.
+ * get noticeable memleaks when I'm logged in for weeks at a time.
  */
 using Gtk;
 
+// TODO: Load hotkey from a config file
 const string HOTKEY = "<Mod4>space";
 
 // XXX: Is there REALLY no generic way to turn an array into a Gee data type?
@@ -180,7 +183,6 @@ public static int main(string[] argv) {
         log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
         App app = new App(runner);
 
-        // TODO: Load hotkey from a config file
         // TODO: I'll need an equivalent to this if I want to support Windows.
         // Have to do this here because inside a class segfaults it.
         KeybindingManager manager = new KeybindingManager();
