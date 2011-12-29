@@ -13,9 +13,39 @@
  * @author Stephan Sokolow <http://www.ssokolow.com/ContactMe>
  */
 
+
+/** Resolve a path beginning with "~" */
+public static string expand_tilde(string path) {
+    if (!path.has_prefix("~")) { return path; }
+
+    string parts[2];
+    if (!(Path.DIR_SEPARATOR_S in path)) {
+        parts = { path.substring(1), Path.DIR_SEPARATOR_S };
+    } else {
+        string trimmed = path.substring(1);
+        parts = trimmed.split(Path.DIR_SEPARATOR_S, 2);
+    }
+
+    warn_if_fail(parts.length == 2);
+
+    string home_path;
+    if (parts[0] == "") {
+        home_path = Environment.get_variable("HOME") ?? Environment.get_home_dir();
+    } else {
+        unowned Posix.Passwd _pw = Posix.getpwnam(parts[0]);
+        home_path = (_pw == null) ? null : _pw.pw_dir;
+    }
+
+    if (home_path == null) {
+        log(null, LogLevelFlags.LEVEL_WARNING, "Could not get homedir for user: %s", parts[0].length > 0 ? parts[0] : "<current user>");
+        return path;
+    } else {
+        return home_path + Path.DIR_SEPARATOR_S + parts[1];
+    }
+}
+
 /** Simple class wrapping xdg-open and similar functionality. */
 public class ProcessRunner : Object {
-    private string home_path;
     private string open_cmd;
     private string[] shell_cmd;
     private string[] term_cmd;
@@ -34,7 +64,6 @@ public class ProcessRunner : Object {
             }
         }
 
-        this.home_path   = Environment.get_variable("HOME") ?? Environment.get_home_dir();
         this.shell_cmd   = {Environment.get_variable("SHELL"), "-c"}; // TODO: On Windows, use COMSPEC.
         this.term_cmd    = {"urxvt", "-e"}; // TODO: On Windows, leave this blank.
         this.use_term    = use_term && !Posix.isatty(Posix.stdout.fileno());
@@ -97,9 +126,7 @@ public class ProcessRunner : Object {
         // Flexible quoting for maximum versatility. (Order minimizes mistakes)
         string[] interpretations = {_args, argv[0]};
         foreach (string cmd in interpretations) {
-            if (cmd[0] == '~')
-                // FIXME: This segfaults
-                cmd = home_path + (string) Path.DIR_SEPARATOR + cmd.substring(1);
+            cmd = expand_tilde(cmd);
 
             string _cmd; // Resolved command
             if ((_cmd = Environment.find_program_in_path(cmd)) != null) {
@@ -115,7 +142,7 @@ public class ProcessRunner : Object {
                 log(null, LogLevelFlags.LEVEL_INFO, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
                 return spawn_or_log({this.open_cmd, cmd});
             } else {
-                log(null, LogLevelFlags.LEVEL_DEBUG, "No match: %s", cmd);
+                log(null, LogLevelFlags.LEVEL_DEBUG, "No match: '%s'", cmd);
                 continue; // No match, try the alternate interpretation.
             }
         }
