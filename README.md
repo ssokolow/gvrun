@@ -25,6 +25,6 @@ To build on Ubuntu (probably Debian too), it only takes two commands:
     sudo apt-get install libgtk-3-dev libgee-dev valac
     make
 
-The default hotkey it responds to is WinKey+Space ("<Mod4>space" in GTK+
+The default hotkey it responds to is WinKey+Space ("`<Mod4>space`" in GTK+
 accelerator parlance) and is easy to see and edit at the top of `gvrun.vala`
 until I can get around to implementing a config file.
