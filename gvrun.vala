@@ -119,6 +119,7 @@ public class App : Object {
         dialog.delete_event.connect(() => {
             // Hijack Gtk.Dialog's default ESC behaviour and hide() instead.
             // Probably not the right way to do this, but it seems to work.
+            // Source: http://ubuntuforums.org/showthread.php?t=446161
             this.dialog.hide();
             return true;
         });

@@ -1,7 +1,7 @@
 When complete, this will look and act much the same as [gmrun](http://sourceforge.net/projects/gmrun/) but with a few adjustments for more modern desktops:
 
- * Written in [Vala](http://sourceforge.net/projects/gmrun/) for easy maintenance without the weight of Python.
- * Supports remaining resident in memory for responsiveness under load.
+ * Written in [Vala](https://live.gnome.org/Vala) for easy maintenance without the weight of a non-native language like [Python](http://www.python.org/).
+ * Supports remaining resident in memory for responsiveness under system load.
  * Runs commands in your preferred shell so script snippets just work.
  * Requires no manual file associations. Uses `xdg-open` for non-executables.
  * Supports taking input on the command line to act as a backend for address bar widgets in IceWM, AwesomeWM, etc.
