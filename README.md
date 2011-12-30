@@ -1,4 +1,6 @@
-When complete, this will look and act much the same as [gmrun](http://sourceforge.net/projects/gmrun/) but with a few adjustments for more modern desktops:
+gvrun is a lightweight, desktop-independent, GTK+-based Run dialog which attempts to mimic the look and feel of [gmrun](http://sourceforge.net/projects/gmrun/) while compensating for the areas where it falls short.
+
+# Features
 
  * Written in [Vala](https://live.gnome.org/Vala) for easy maintenance without the weight of a non-native language like [Python](http://www.python.org/).
  * Supports remaining resident in memory for responsiveness to global hotkeys in the face of heavy system load.
@@ -18,11 +20,21 @@ At present, it's in an early stage of development, so the following caveats appl
 
 If you still want to try it, it requires GTK+ 3.x (2.x may work if the Makefile is adjusted but is untested) and libgee.
 
+# Installation
+
 To build on Ubuntu (probably Debian too), it only takes two commands:
 
     sudo apt-get install libgtk-3-dev libgee-dev valac
     make
 
+# Usage
+
 The default hotkey it responds to is WinKey+Space ("`<Mod4>space`" in GTK+
 accelerator parlance) and is easy to see and edit at the top of `gvrun.vala`
 until I can get around to implementing a config file.
+
+# License
+
+This program is licensed under the GNU GPL 2.0 or later with components of more
+general utility kept in their own source files and licensed under an MIT
+license to help enrich the Vala experience for potential future developers.

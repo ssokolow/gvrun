@@ -1,5 +1,6 @@
 /**
 Source: http://code.valaide.org/content/global-hotkeys
+Terms:  http://code.valaide.org/content/terms-service
 Modified to work with gdk-x11-3.0 by Stephan Sokolow, 2011-12-28.
 
 Test with:
