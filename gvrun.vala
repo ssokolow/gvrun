@@ -10,14 +10,6 @@ using Gtk;
 // TODO: Load hotkey from a config file
 const string HOTKEY = "<Mod4>space";
 
-// XXX: Is there REALLY no generic way to turn an array into a Gee data type?
-public string[] strlist_concat(string[] strlist, string[] string_array) {
-    string[] result = strlist;
-    foreach (var str in string_array) { result += str; }
-    return result;
-}
-
-
 public class RunDialog : Dialog {
     private Entry command_entry;
     private ProcessRunner runner;

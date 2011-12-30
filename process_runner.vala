@@ -44,6 +44,13 @@ public static string expand_tilde(string path) {
     }
 }
 
+// XXX: Is there REALLY no generic way to turn an array into a Gee data type?
+public string[] strlist_concat(string[] strlist, string[] string_array) {
+    string[] result = strlist;
+    foreach (var str in string_array) { result += str; }
+    return result;
+}
+
 /** Simple class wrapping xdg-open and similar functionality. */
 public class ProcessRunner : Object {
     private string open_cmd;
