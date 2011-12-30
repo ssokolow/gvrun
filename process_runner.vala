@@ -78,7 +78,7 @@ public class ProcessRunner : Object {
     private bool use_term = false;
     private Regex uri_re;
 
-    public const string[] OPENERS = {"xdg-open", "mimeopen", "start", "open"};
+    public const string[] OPENERS = {"xdg-open", "open", "start", "mimeopen"};
 
     public ProcessRunner(bool? use_term) {
         // TODO: Figure out how to detect when we're on Windows.
