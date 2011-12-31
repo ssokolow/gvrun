@@ -79,14 +79,17 @@ public class RunDialog : Dialog {
         var actions = get_action_area() as Box;
         content.remove(actions);
 
+        // We want to show all child widgets but wait to show the window.
         show_all();
-        hide(); // We want to show all child widgets but wait to show the window.
+        hide();
     }
 
     private void connect_signals() {
+        // When Enter is pressed... (accessible version)
         this.command_entry.activate.connect (() => {
             log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s", this.command_entry.text);
             if (runner.run_string(this.command_entry.text)) {
+                // If the command successfully spawned, empty and hide.
                 this.command_entry.text = "";
                 this.hide();
             }
@@ -110,6 +113,7 @@ public class App : Object {
     const uint[] ignored_mods = {0, X.KeyMask.Mod2Mask, X.KeyMask.LockMask, X.KeyMask.Mod2Mask | X.KeyMask.LockMask};
 
     // TODO: Support a "service one request, then exit" mode.
+    // TODO: Figure out an equivalent to `action=count` in Python for -vv.
     public const OptionEntry[] valid_opts = {
         { "verbose", 'v', 0, OptionArg.NONE, ref verbose, "Make the logging output more verbose", null},
         { "debug", 0, 0, OptionArg.NONE, ref debug, "Turn on debugging messages (make things very verbose)", null},
@@ -118,11 +122,11 @@ public class App : Object {
         { null }
     };
 
-    RunDialog dialog;
+    private RunDialog dialog;
 
     public App(ProcessRunner runner) {
-
         this.dialog = new RunDialog(runner);
+
         dialog.delete_event.connect(() => {
             // Hijack Gtk.Dialog's default ESC behaviour and hide() instead.
             // Probably not the right way to do this, but it seems to work.
@@ -132,12 +136,11 @@ public class App : Object {
         });
     }
 
-    public void show() {
-        this.dialog.show();
-    }
+    public void show() { this.dialog.show(); }
 }
 
 public static int main(string[] argv) {
+    // Initialize GTK+, parse args, and handle --help.
     try {
         Gtk.init_with_args(ref argv, "[command line]", App.valid_opts, null);
     } catch (OptionError e) {
@@ -146,6 +149,7 @@ public static int main(string[] argv) {
             App.use_gui = false;
         } else {
             // Error parsing argv
+            // LEVEL_ERROR always aborts the program, so we exit here.
             log(null, LogLevelFlags.LEVEL_ERROR, e.message);
         }
     } catch (Error e) {
@@ -169,9 +173,11 @@ public static int main(string[] argv) {
 
     if (argv.length >= 2) {
         if (argv.length == 2) {
+            // Support things which pass the entire string unparsed
             log(null, LogLevelFlags.LEVEL_DEBUG, "Parsing and running string: %s", argv[0]);
             return runner.run_string(argv[1]) ? 0 : 2;
         } else {
+            // Also support things which parse the string before sending it.
 
             //XXX: Is there really no equivalent to Python's argv[1:] slice in Vala?
             bool skipped = false;
@@ -188,6 +194,7 @@ public static int main(string[] argv) {
             return runner.run(argv_trimmed) ? 0 : 2;
         }
     } else if (App.use_gui) {
+        // With no arguments and successful GTK+ initialization, show the GUI.
         log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
         App app = new App(runner);
 

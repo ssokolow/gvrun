@@ -34,8 +34,11 @@
 
 /** Resolve a path beginning with "~" */
 public static string expand_tilde(string path) {
+    // Just pass paths through if they don't start with ~
     if (!path.has_prefix("~")) { return path; }
 
+    // Split the ~user portion from the path
+    // (Use / for the path if not present)
     string parts[2];
     if (!(Path.DIR_SEPARATOR_S in path)) {
         parts = { path.substring(1), Path.DIR_SEPARATOR_S };
@@ -43,9 +46,9 @@ public static string expand_tilde(string path) {
         string trimmed = path.substring(1);
         parts = trimmed.split(Path.DIR_SEPARATOR_S, 2);
     }
-
     warn_if_fail(parts.length == 2);
 
+    // Handle both "~" and "~user" forms
     string home_path;
     if (parts[0] == "") {
         home_path = Environment.get_variable("HOME") ?? Environment.get_home_dir();
@@ -54,6 +57,7 @@ public static string expand_tilde(string path) {
         home_path = (_pw == null) ? null : _pw.pw_dir;
     }
 
+    // Fail safely if we couldn't look up a homedir
     if (home_path == null) {
         log(null, LogLevelFlags.LEVEL_WARNING, "Could not get homedir for user: %s", parts[0].length > 0 ? parts[0] : "<current user>");
         return path;
@@ -81,7 +85,7 @@ public class ProcessRunner : Object {
     public const string[] OPENERS = {"xdg-open", "open", "start", "mimeopen"};
 
     public ProcessRunner(bool? use_term) {
-        // TODO: Figure out how to detect when we're on Windows.
+        // Choose the best method available for accessing file associations.
         foreach (var cmd in OPENERS) {
             if (Environment.find_program_in_path(cmd) != null) {
                 this.open_cmd = cmd;
@@ -93,6 +97,9 @@ public class ProcessRunner : Object {
         this.term_cmd    = {"urxvt", "-e"}; // TODO: On Windows, leave this blank.
         this.use_term    = use_term && !Posix.isatty(Posix.stdout.fileno());
 
+        // There's no way to make Vala understand that it can know at compile
+        // time whether this will or won't throw a RegexError, so just silence
+        // the warning responsibly.
         try {
             uri_re =  new Regex("^[a-zA-Z0-9+.\\-]+:.+$", RegexCompileFlags.CASELESS);
         } catch (RegexError e) {
@@ -138,6 +145,7 @@ public class ProcessRunner : Object {
     public bool run (string[] argv, string? args=null) {
         string _args = "";
 
+        // Generate args from argv if not provided
         if (args == null) {
             foreach (var piece in argv) {
                _args += " " + piece;
@@ -177,7 +185,7 @@ public class ProcessRunner : Object {
 
         string[] spawn_cmd = {};
         if (this.use_term) {
-            // XXX: Decide how to add this functionality to the
+            // TODO: Decide how to add this functionality to the
             // find_program_in_path branch without it being annoying.
             log(null, LogLevelFlags.LEVEL_DEBUG, "Using terminal for %s", _args);
             spawn_cmd = this.term_cmd;

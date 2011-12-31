@@ -2,21 +2,24 @@ gvrun is a lightweight, desktop-independent, GTK+-based Run dialog which attempt
 
 # Features
 
- * Written in [Vala](https://live.gnome.org/Vala) for easy maintenance without the weight of a non-native language like [Python](http://www.python.org/).
- * Supports remaining resident in memory for responsiveness to global hotkeys in the face of heavy system load.
- * Requires no manual file associations. Uses `xdg-open` for non-executables.
- * Resolves `~` and `~user` in paths.
- * Runs commands in your preferred shell so script snippets just work.
- * Supports taking input on the command line to act as a backend for address bar widgets in IceWM, AwesomeWM, etc.
+ * Just Works™ wherever feasible.
+   * Resolves `~` and `~user` in paths.
+   * Respects your desktop's settings for opening files and URLs by using `xdg-open`.
+   * Executes shell script snippets in your preferred shell via `$SHELL`.
+ * Can be used as a backend by other GUIs such as the IceWM and AwesomeWM address bar widgets. Just pass the command as an argument.
+ * Stays resident and does its own global hotkey-binding for better responsiveness than gmrun when the system is heavily loaded.
+ * Lightweight and fast. Written in [Vala](https://live.gnome.org/Vala) for easy maintenance without the weight of a non-native language like [Python](http://www.python.org/).
+ * Minimal dependencies. Requires only GTK+, [Libgee](https://live.gnome.org/Libgee), and Xlib for keybinding.
+ * Clean, well-commented source. Useful as a reference example for how to accomplish quite a few common tasks with the Glib API.
  * **(Pending)** Auto-completion not confused by hidden files and directories.
  * **(Pending)** Notification of non-success exit conditions via libnotify.
 
-At present, it's in an early stage of development, so the following caveats apply:
+**Note:** At present, it's in an early stage of development, so the following caveats apply:
 
  * Auto-completion and command history haven't been implemented yet.
  * "Run in Terminal" is incomplete.
  * I haven't set up any kind of config parsing yet, so all configuration values are currently hard-coded.
- * I haven't figured out how to test for POSIX vs. Win32 from Vala, so `%COMSPEC%` will be ignored in favor of `%SHELL%` if you get it built on Windows.
+ * I haven't figured out how to test for POSIX vs. Win32 from Vala so, if you get it building on Windows, it'll ignore `%COMSPEC%` in favor of `%SHELL%`.
 
 If you still want to try it, it requires GTK+ 3.x (2.x may work if the Makefile is adjusted but is untested) and libgee.
 
@@ -29,12 +32,12 @@ To build on Ubuntu (probably Debian too), it only takes two commands:
 
 # Usage
 
-The default hotkey it responds to is WinKey+Space ("`<Mod4>space`" in GTK+
-accelerator parlance) and is easy to see and edit at the top of `gvrun.vala`
-until I can get around to implementing a config file.
+The default hotkey is WinKey+Space ("`<Mod4>space`" in GTK+ accelerator parlance) and is easy to see and edit at the top of `gvrun.vala` until I can get around to implementing a config file.
+
+To replicate the functionality of the `URL_*` and `EXT:` keys from `~/.gmrunrc`, set custom associations in your desktop's control panel. (This has the side-benefit of working in all applications, not just gvrun)
+
+See the [FAQ/PAQ](https://github.com/ssokolow/gvrun/wiki/Potentially-Asked-Questions) page for instructions if your desktop lacks a GUI for this.
 
 # License
 
-This program is licensed under the GNU GPL 2.0 or later with components of more
-general utility kept in their own source files and licensed under an MIT
-license to help enrich the Vala experience for potential future developers.
+This program is licensed under the GNU GPL 2.0 or later with components of more general utility kept in their own source files and licensed under an MIT license to help enrich the Vala experience for potential future developers.
