@@ -1,20 +1,21 @@
 /**
-Source: http://code.valaide.org/content/global-hotkeys
-Terms:  http://code.valaide.org/content/terms-service
-Modified to work with gdk-x11-3.0 by Stephan Sokolow, 2011-12-28.
-
-Test with:
-
-    valac --pkg gtk+-3.0 --pkg x11 --pkg gdk-x11-3.0 --pkg gee-1.0 -D DEMO_STUB keybinding-manager.vala
-
-*/
+ * Source: http://code.valaide.org/content/global-hotkeys
+ * Terms:  http://code.valaide.org/content/terms-service
+ * Modified to work with gdk-x11-3.0 by Stephan Sokolow, 2011-12-28.
+ *
+ * Test with:
+ *
+ * {{{
+ *  valac --pkg gtk+-3.0 --pkg x11 --pkg gdk-x11-3.0 --pkg gee-1.0 -D DEMO_STUB keybinding-manager.vala
+ * }}}
+ *
+ * @author Oliver Sauder <os@esite.ch>
+ */
 
 /**
  * This class is in charge to grab keybindings on the X11 display
  * and filter X11-events and passing on such events to the registed
  * handler methods.
- *
- * @author Oliver Sauder <os@esite.ch>
  */
 public class KeybindingManager : GLib.Object
 {

@@ -9,6 +9,7 @@
  *  - Shell script snippets (resorts to `$SHELL -c` as a fallback)
  *
  * @author Stephan Sokolow <http://www.ssokolow.com/ContactMe>
+ * @license MIT
  *
  * Copyright (c) 2011 Stephan Sokolow
  *

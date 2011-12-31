@@ -3,6 +3,9 @@
  * TODO: Make sure the variable ownership is all defined properly so I don't
  * get noticeable memleaks when I'm logged in for weeks at a time.
  *
+ * @author Stephan Sokolow <http://www.ssokolow.com/ContactMe>
+ * @license GNU GPL 2.0 or later
+ *
  * Copyright (C) 2011 Stephan Sokolow
  *
  * This program is free software; you can redistribute it and/or modify it
