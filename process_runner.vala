@@ -59,7 +59,7 @@ public static string expand_tilde(string path) {
 
     // Fail safely if we couldn't look up a homedir
     if (home_path == null) {
-        log(null, LogLevelFlags.LEVEL_WARNING, "Could not get homedir for user: %s", parts[0].length > 0 ? parts[0] : "<current user>");
+        warning("Could not get homedir for user: %s", parts[0].length > 0 ? parts[0] : "<current user>");
         return path;
     } else {
         return home_path + Path.DIR_SEPARATOR_S + parts[1];
@@ -103,7 +103,7 @@ public class ProcessRunner : Object {
         try {
             uri_re =  new Regex("^[a-zA-Z0-9+.\\-]+:.+$", RegexCompileFlags.CASELESS);
         } catch (RegexError e) {
-            log(null, LogLevelFlags.LEVEL_ERROR, "Bad compile-time constant: ProcessRunner.uri_re");
+            error("Bad compile-time constant: ProcessRunner.uri_re");
         }
 
     }
@@ -119,7 +119,7 @@ public class ProcessRunner : Object {
             Process.spawn_async(null, _argv, null, SpawnFlags.SEARCH_PATH, null, null);
             return true;
         } catch (SpawnError e) {
-            log(null, LogLevelFlags.LEVEL_WARNING, "spawn_async() failed for %s", _argv[0]);
+            warning("spawn_async() failed for %s", _argv[0]);
             return false;
         }
     }
@@ -130,7 +130,7 @@ public class ProcessRunner : Object {
         try {
             Shell.parse_argv(args, out argv);
         } catch (ShellError e) {
-            log(null, LogLevelFlags.LEVEL_WARNING, "parse_argv() failed for: %s", args);
+            warning("parse_argv() failed for: %s", args);
             return false;
         }
 
@@ -164,7 +164,7 @@ public class ProcessRunner : Object {
             string _cmd; // Resolved command
             if ((_cmd = Environment.find_program_in_path(cmd)) != null) {
                 // Valid command (shell execute for versatility)
-                log(null, LogLevelFlags.LEVEL_INFO, "Executing with shell: %s (%s)", _cmd, _args);
+                message("Executing with shell: %s (%s)", _cmd, _args);
 
                 string[] spawn_cmd = this.shell_cmd;
                 spawn_cmd += _args;
@@ -172,22 +172,22 @@ public class ProcessRunner : Object {
                 return spawn_or_log((string[]) spawn_cmd);
             } else if (FileUtils.test(cmd, FileTest.EXISTS) || uri_re.match(cmd)) {
                 // URL or local path (Use desktop associations system)
-                log(null, LogLevelFlags.LEVEL_INFO, "URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
+                message("URL or local path: %s (Opening with %s)", cmd, this.open_cmd);
                 return spawn_or_log({this.open_cmd, cmd});
             } else {
-                log(null, LogLevelFlags.LEVEL_DEBUG, "No match: '%s'", cmd);
+                debug("No match: '%s'", cmd);
                 continue; // No match, try the alternate interpretation.
             }
         }
 
         // Fall back to letting the shell try to make sense of it.
-        log(null, LogLevelFlags.LEVEL_INFO, "Attempting shell fallback for %s", _args);
+        message("Attempting shell fallback for %s", _args);
 
         string[] spawn_cmd = {};
         if (this.use_term) {
             // TODO: Decide how to add this functionality to the
             // find_program_in_path branch without it being annoying.
-            log(null, LogLevelFlags.LEVEL_DEBUG, "Using terminal for %s", _args);
+            debug("Using terminal for %s", _args);
             spawn_cmd = this.term_cmd;
         }
 

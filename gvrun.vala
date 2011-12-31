@@ -87,7 +87,7 @@ public class RunDialog : Dialog {
     private void connect_signals() {
         // When Enter is pressed... (accessible version)
         this.command_entry.activate.connect (() => {
-            log(null, LogLevelFlags.LEVEL_INFO, "Attempting to run: %s", this.command_entry.text);
+            message("Attempting to run: %s", this.command_entry.text);
             if (runner.run_string(this.command_entry.text)) {
                 // If the command successfully spawned, empty and hide.
                 this.command_entry.text = "";
@@ -150,10 +150,10 @@ public static int main(string[] argv) {
         } else {
             // Error parsing argv
             // LEVEL_ERROR always aborts the program, so we exit here.
-            log(null, LogLevelFlags.LEVEL_ERROR, e.message);
+            error(e.message);
         }
     } catch (Error e) {
-        log(null, LogLevelFlags.LEVEL_ERROR, "Unexpected error: %s", e.message);
+        error("Unexpected error: %s", e.message);
     }
 
     // Hide DEBUG and INFO messages
@@ -174,7 +174,7 @@ public static int main(string[] argv) {
     if (argv.length >= 2) {
         if (argv.length == 2) {
             // Support things which pass the entire string unparsed
-            log(null, LogLevelFlags.LEVEL_DEBUG, "Parsing and running string: %s", argv[0]);
+            debug("Parsing and running string: %s", argv[0]);
             return runner.run_string(argv[1]) ? 0 : 2;
         } else {
             // Also support things which parse the string before sending it.
@@ -190,12 +190,12 @@ public static int main(string[] argv) {
                 argv_trimmed += piece;
             }
 
-            log(null, LogLevelFlags.LEVEL_DEBUG, "Running argv: '%s'", string.joinv("' '", argv_trimmed));
+            debug("Running argv: '%s'", string.joinv("' '", argv_trimmed));
             return runner.run(argv_trimmed) ? 0 : 2;
         }
     } else if (App.use_gui) {
         // With no arguments and successful GTK+ initialization, show the GUI.
-        log(null, LogLevelFlags.LEVEL_DEBUG, "Starting GUI");
+        debug("Starting GUI");
         App app = new App(runner);
 
         // TODO: I'll need an equivalent to this if I want to support Windows.
@@ -206,7 +206,7 @@ public static int main(string[] argv) {
 
         Gtk.main();
     } else {
-        log(null, LogLevelFlags.LEVEL_ERROR, "Unable to initialize GTK+ and no arguments given.");
+        debug("Unable to initialize GTK+ and no arguments given.");
     }
     return 0;
 }
