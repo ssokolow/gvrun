@@ -25,10 +25,13 @@ If you still want to try it, it requires GTK+ 3.x (2.x may work if the Makefile 
 
 # Installation
 
-To build on Ubuntu (probably Debian too), it only takes two commands:
+To build on Ubuntu (probably Debian too), it only takes three commands:
 
+    sudo cp supplemental/xdg-* /usr/bin/
     sudo apt-get install libgtk-3-dev libgee-dev valac
     make
+
+(As of this writing, there are bugs and shortcomings in the released version of `xdg-open` and `xdg-terminal` has not been released. I have filed bug reports and submitted patches but they have not made it into any distros yet. Hence the installation of the included copies of `xdg-open` and `xdg-terminal` as part of the setup process for gvrun.)
 
 # Usage
 

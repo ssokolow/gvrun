@@ -1,0 +1,6 @@
+As of this writing, systems like Lubuntu do not include xdg-terminal and
+released versions of xdg-open have shortcomings in their URL-handling support.
+
+These versions are provided as known good alternatives which can be installed
+into your system to gain full functionality should the system versions fall
+short.
