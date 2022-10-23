@@ -1,3 +1,8 @@
+**RETIRED:** I no longer work in Vala and, if I choose to do something like
+this in the future, I'll start over in Rust.
+
+---
+
 gvrun is a lightweight, desktop-independent, GTK+-based Run dialog which attempts to mimic the look and feel of [gmrun](http://sourceforge.net/projects/gmrun/) while compensating for the areas where it falls short.
 
 # Features
