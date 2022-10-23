@@ -26,7 +26,7 @@
 using Gtk;
 
 // TODO: Load hotkey from a config file
-const string HOTKEY = "<Mod4>space";
+const string HOTKEY = "<Mod4><Shift>space";
 
 public class RunDialog : Dialog {
     private Entry command_entry;
